@@ -1,8 +1,9 @@
 import json, os
-from typing import Dict, List, Set
+from typing import Dict, List
 
-output_filename = "今天吃什么.json"
-HowToCook_Dir = 'HowToCook/dishes'
+output_filepath = os.path.join('output', '今天吃什么.json')
+deck_name = '今天吃什么'
+HowToCook_Dir = os.path.join('HowToCook', 'dishes')
 
 class Dishes:
     _dishes: Dict[str, List[str]]
@@ -35,4 +36,4 @@ for dish_type in dirnames:
 
 dishes.add_deck("今天吃什么", dirnames, False)
 
-dishes.dump_json(output_filename)
+dishes.dump_json(output_filepath)
