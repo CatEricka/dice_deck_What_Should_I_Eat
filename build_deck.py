@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json, os
 from typing import Dict, Iterable, List, Set, Tuple
 
@@ -203,18 +204,18 @@ class Dishes:
         return filter(lambda deck_group: deck_group.get_real_compose_group_name() not in compose_group_names, self.compose_group)
 
     def dump_json(self, filename: str):
-        output = dict()
+        output = OrderedDict()
         for deck in self.decks:
             d = deck.dump()
-            output[d[0]] = d[1]
+            output[d[0]] = sorted(d[1])
         for group in self.deck_groups:
             g = group.dump()
-            output[g[0]] = g[1]
+            output[g[0]] = sorted(g[1])
         for group in self.compose_group:
             g = group.dump()
-            output[g[0]] = g[1]
+            output[g[0]] = sorted(g[1])
         with open(filename, "w", encoding='utf8') as f:
-            json.dump(output, f, ensure_ascii=False, indent=4)
+            json.dump(output, f, ensure_ascii=False, indent=4, sort_keys=True)
 
 
 # 实例
