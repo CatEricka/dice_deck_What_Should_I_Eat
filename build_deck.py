@@ -22,7 +22,7 @@ class Dishes:
             self._dishes[deck_name] = list(lst)
 
     def dump_json(self, filename: str):
-        json.dump(self._dishes, open(filename, "w", encoding='utf8'), ensure_ascii=False)
+        json.dump(self._dishes, open(filename, "w", encoding='utf8'), ensure_ascii=False, indent=4)
 
 dishes = Dishes()
 
