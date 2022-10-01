@@ -256,15 +256,29 @@
         "麻婆豆腐"
     ],
     "今天吃什么": [
-        "aquatic",
-        "breakfast",
-        "condiment",
-        "dessert",
-        "drink",
-        "meat_dish",
-        "semi-finished",
-        "soup",
-        "staple",
-        "vegetable_dish"
+        "{%aquatic}",
+        "{%breakfast}",
+        "{%dessert}",
+        "{%meat_dish}",
+        "{%semi-finished}",
+        "{%soup}",
+        "{%staple}",
+        "{%vegetable_dish}"
+    ],
+    "今天喝什么": [
+        "{%drink}"
+    ],
+    "来点酱料": [
+        "{%condiment}"
+    ],
+    "来点快餐": [],
+    "早饭吃什么": [
+        "{%今天吃什么}"
+    ],
+    "午饭吃什么": [
+        "{%今天吃什么}"
+    ],
+    "晚饭吃什么": [
+        "{%今天吃什么}"
     ]
 }
