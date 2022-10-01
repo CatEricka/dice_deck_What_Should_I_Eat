@@ -243,17 +243,29 @@ DISHES.add_group(ComposeGroup("早饭吃什么").add_deck_group(DISHES.get_deck_
 DISHES.add_group(ComposeGroup("午饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
 DISHES.add_group(ComposeGroup("晚饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
 
+
+def load_external_dishes(file_name: str, group_name: str | None = None, add_to_todays_chosen = True):
+    '''
+    file_name:
+        `mixin` 目录下 json 文件路径, 文件名会作为新卡组名
+    group_name:
+        新分组名, 如果不为 `None`, 卡组自身会被隐藏, 只是用分组名作为公开卡组
+    add_to_todays_chosen:
+        是否添加到总分组 `今天吃什么`
+    '''
+    with open(os.path.join('mixins', file_name), 'r', encoding='utf8') as f:
+        base_name = os.path.splitext(os.path.basename(file_name))[0]
+        extern_dishes = Deck(base_name, json.load(f), True)
+
+        DISHES.add_deck(extern_dishes)
+        if group_name:
+            DISHES.add_group(DeckGroup(group_name).add_deck(extern_dishes))
+
+        # 添加到今日之选
+        if add_to_todays_chosen:
+            TODAYS_CHOSEN.add_deck(extern_dishes)
+
 # 其它来源
-snack_file_name = '快餐'        # 文件名
-snack_group_name = '来点快餐'   # 新建分组名
-with open(os.path.join('mixins', f'{snack_file_name}.json'), 'r', encoding='utf8') as f:
-    extern_dishes = Deck(snack_file_name, json.load(f), True)
-    DISHES.add_deck(extern_dishes)
-
-    group = DeckGroup(snack_group_name).add_deck(extern_dishes)
-    group.add_deck(extern_dishes)
-
-    # 添加到今日之选
-    TODAYS_CHOSEN.add_deck(extern_dishes)
+load_external_dishes('快餐.json', group_name='来点快餐', add_to_todays_chosen=True)
 
 DISHES.dump_json(output_filepath)
