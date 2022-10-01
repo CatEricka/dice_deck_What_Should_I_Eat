@@ -1,0 +1,1 @@
+git clone https://github.com/Anduin2017/HowToCook.git --depth 1
