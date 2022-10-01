@@ -280,6 +280,8 @@ DISHES.add_group(ComposeGroup("早饭吃什么").add_deck_group(DISHES.get_deck_
 DISHES.add_group(ComposeGroup("午饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
 DISHES.add_group(ComposeGroup("晚饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
 
+DISHES.add_group(ComposeGroup("来点不重样的").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么'), put_back=False))
+
 
 # 其它分组
 DISHES.add_group(DeckGroup('今天喝什么').add_deck(DISHES.get_deck_by_name('drink')))
