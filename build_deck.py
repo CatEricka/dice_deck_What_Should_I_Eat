@@ -204,7 +204,7 @@ class Dishes:
         return filter(lambda deck_group: deck_group.get_real_compose_group_name() not in compose_group_names, self.compose_group)
 
     def dump_json(self, filename: str):
-        output = OrderedDict()
+        output = dict()
         for deck in self.decks:
             d = deck.dump()
             output[d[0]] = sorted(d[1])
