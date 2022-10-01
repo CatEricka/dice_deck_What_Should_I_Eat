@@ -1,9 +1,16 @@
 from collections import OrderedDict
-import json, os
 from typing import Dict, Iterable, List, Set, Tuple
+from functools import reduce
+import math
+import json, os
 
 output_filepath = os.path.join('output', '今天吃什么.json')
 HowToCook_Dir = os.path.join('HowToCook', 'dishes')
+
+DEBUG = True
+def debug_print(*args):
+    if DEBUG:
+        print(*args)
 
 class Deck:
     _hidden: bool
@@ -23,6 +30,9 @@ class Deck:
             return f'_{self._deck_name}'
         else:
             return self._deck_name
+
+    def get_internal_cards_ref(self):
+        return self._cards
 
     def get_cards_copied(self):
         return list(self._cards)
@@ -79,6 +89,9 @@ class DeckGroup:
         else:
             return self._group_name
     
+    def get_internal_ref(self):
+        return self._deck_refs
+    
     def merge(self, other):
         if id(self) == id(other):
             return self
@@ -88,13 +101,29 @@ class DeckGroup:
                 self.hidden = self.hidden or other.hidden
         return self
 
-    def dump(self) -> Tuple[str, List[str]]:
+    def _dump(self) -> Tuple[str, List[str]]:
+        '''
+        不是很好用, 不要用. 会有不平衡概率问题
+        '''
         lst = list()
         for (deck, put_back) in self._deck_refs:
             if put_back:
                 lst.append(f'{{%{deck.get_deck_name_mangling()}}}')
             else:
                 lst.append(f'{{{deck.get_deck_name_mangling()}}}')
+        return (self.get_deck_group_name_mangling(), lst)
+    
+    def dump_with_expand(self) -> Tuple[str, List[str]]:
+        '''
+        事实是, 平衡概率很麻烦, 所以干脆展开
+        '''
+        debug_print(f'group {self.get_real_deck_group_name()}:')
+        lst = list()
+        for (deck, _) in self._deck_refs:
+            # 忽略 put_back
+            debug_print(f'\texpand "{deck.get_real_deck_name()}"')
+            lst.extend(deck.get_cards_copied())
+        sorted(lst)
         return (self.get_deck_group_name_mangling(), lst)
 
     def __eq__(self, __o: object) -> bool:
@@ -107,6 +136,9 @@ class DeckGroup:
         return hash(self._group_name)
 
 class ComposeGroup:
+    '''
+    只应该作为别名使用
+    '''
     _hidden: bool
     _compose_group_name: str
     # [(其它复合组, True放回/False不放回), ...]
@@ -137,11 +169,14 @@ class ComposeGroup:
 
     def dump(self) -> Tuple[str, List[str]]:
         lst = list()
+        debug_print(f'group {self.get_real_compose_group_name()}')
         for (group, put_back) in self._refs:
             if put_back:
+                debug_print(f'\talias put_back {{%{group.get_real_deck_group_name()}}}')
                 lst.append(f'{{%{group.get_deck_group_name_mangling()}}}')
             else:
                 lst.append(f'{{{group.get_deck_group_name_mangling()}}}')
+                debug_print(f'\talias {{%{group.get_real_deck_group_name()}}}')
         return (self.get_compose_group_name_mangling(), lst)
 
     def __eq__(self, __o: object) -> bool:
@@ -195,10 +230,10 @@ class Dishes:
         return None
 
     def get_decks_not_in(self, decks_name: List[str]) -> Iterable[Deck]:
-        return filter(lambda deck: deck.get_deck_name_mangling() not in decks_name, self.decks)
+        return filter(lambda deck: deck.get_real_deck_name() not in decks_name, self.decks)
 
     def get_decks_group_not_in(self, deck_group_names: List[str]) -> Iterable[DeckGroup]:
-        return filter(lambda deck_group: deck_group.get_deck_group_name_mangling() not in deck_group_names, self.deck_groups)
+        return filter(lambda deck_group: deck_group.get_real_deck_group_name() not in deck_group_names, self.deck_groups)
     
     def get_compose_group_not_in(self, compose_group_names: List[str]) -> Iterable[ComposeGroup]:
         return filter(lambda deck_group: deck_group.get_real_compose_group_name() not in compose_group_names, self.compose_group)
@@ -209,7 +244,8 @@ class Dishes:
             d = deck.dump()
             output[d[0]] = sorted(d[1])
         for group in self.deck_groups:
-            g = group.dump()
+            # 直接展开列表避免概率问题
+            g = group.dump_with_expand()
             output[g[0]] = sorted(g[1])
         for group in self.compose_group:
             g = group.dump()
@@ -238,16 +274,16 @@ TODAYS_CHOSEN = DeckGroup('今天吃什么').extend_deck(DISHES.get_decks_not_in
 今日之选分组
 '''
 DISHES.add_group(TODAYS_CHOSEN)
+# 复合分组
+# 只作为别名使用, 不应该修改
+DISHES.add_group(ComposeGroup("早饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
+DISHES.add_group(ComposeGroup("午饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
+DISHES.add_group(ComposeGroup("晚饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
 
 
 # 其它分组
 DISHES.add_group(DeckGroup('今天喝什么').add_deck(DISHES.get_deck_by_name('drink')))
 DISHES.add_group(DeckGroup('来点酱料').add_deck(DISHES.get_deck_by_name('condiment')))
-
-# 复合分组
-DISHES.add_group(ComposeGroup("早饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
-DISHES.add_group(ComposeGroup("午饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
-DISHES.add_group(ComposeGroup("晚饭吃什么").add_deck_group(DISHES.get_deck_group_by_name('今天吃什么')))
 
 
 def load_external_dishes(file_name: str, group_name: str | None = None, add_to_todays_chosen = True):
