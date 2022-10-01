@@ -54,6 +54,7 @@ dishes.add_deck_group("今天喝什么", filter(lambda x: x == 'drink', dirnames
 
 dishes.add_deck_group("来点酱料", filter(lambda x: x == 'condiment', dirnames))
 dishes.add_deck_group("来点快餐", [])
+dishes.add_deck_group("来点方便的", [])
 
 dishes.add_deck_group("早饭吃什么", ['今天吃什么'])
 dishes.add_deck_group("午饭吃什么", ['今天吃什么'])
