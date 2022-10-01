@@ -220,6 +220,9 @@ class Dishes:
 
 # 实例
 DISHES = Dishes()
+'''
+全局实例
+'''
 
 # HowToCook 菜单
 dirnames = os.listdir(HowToCook_Dir)
@@ -229,8 +232,11 @@ for dish_type in dirnames:
     sub_dishes = list(map(lambda file: os.path.splitext(file)[0], sub_dishes))
     DISHES.add_deck(Deck(dish_type, sub_dishes, True))
 
-# 今日之选
+
 TODAYS_CHOSEN = DeckGroup('今天吃什么').extend_deck(DISHES.get_decks_not_in(['condiment', 'drink']))
+'''
+今日之选分组
+'''
 DISHES.add_group(TODAYS_CHOSEN)
 
 
@@ -255,7 +261,7 @@ def load_external_dishes(file_name: str, group_name: str | None = None, add_to_t
     '''
     with open(os.path.join('mixins', file_name), 'r', encoding='utf8') as f:
         base_name = os.path.splitext(os.path.basename(file_name))[0]
-        extern_dishes = Deck(base_name, json.load(f), True)
+        extern_dishes = Deck(base_name, json.load(f), group_name != None)
 
         DISHES.add_deck(extern_dishes)
         if group_name:
@@ -265,7 +271,7 @@ def load_external_dishes(file_name: str, group_name: str | None = None, add_to_t
         if add_to_todays_chosen:
             TODAYS_CHOSEN.add_deck(extern_dishes)
 
-# 其它来源
-load_external_dishes('快餐.json', group_name='来点快餐', add_to_todays_chosen=True)
+# 其它来源, 新增内容修改此处
+load_external_dishes('来点快餐.json', add_to_todays_chosen=True)
 
 DISHES.dump_json(output_filepath)
